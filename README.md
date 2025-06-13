@@ -8,23 +8,6 @@ DevSecOps Architecture for a Virtual Enterprise – AMI Builder Repo
 
 ---
 
-## 🗂️ 프로젝트 폴더 구조
-
-.
-├── .github/
-│ └── workflows/
-│ └── ami-build.yml # GitHub Actions CI/CD Workflow
-├── packer.pkr.hcl # Packer Template
-├── variables.pkr.hcl 
-├── ansible/
-│ ├── playbook.yml # Ansible 메인 플레이북
-│ └── roles/
-│ ├── common/ # 패키지 업데이트, 계정 설정 등 기본 보안
-│ ├── docker/ # Docker 설치 및 설정
-│ └── cis/ # CIS Benchmark 기반 최소 보안 설정
-
----
-
 ## ⚙️ 적용 기술 및 구성 요소
 
 ### ✅ Packer
