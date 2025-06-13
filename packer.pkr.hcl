@@ -30,6 +30,8 @@ source "amazon-ebs" "devsecops" {
   subnet_id         = var.subnet_id
   security_group_id = var.security_group_id
 
+  encrypt_boot      = true
+
   ami_name          = "devsecops-ami-{{timestamp}}"
   ami_description   = "Pre-hardened AMI for DevSecOps (Amazon Linux 2023)"
 
@@ -49,7 +51,6 @@ source "amazon-ebs" "devsecops" {
     volume_size           = 10
     volume_type           = "gp3"
     delete_on_termination = true
-    encrypted             = true
   }
 }
 
@@ -60,17 +61,9 @@ build {
     inline = [
       "echo '[packer-init] Starting hardened baseline setup...'",
 
-      # Remove insecure packages
       "sudo dnf remove -y telnet ftp rsh || true",
-
-      # Disable root password login temporarily
       "sudo passwd -l root",
 
-      # Block unused ports at boot level
-      "sudo firewall-offline-cmd --add-port=22/tcp",
-      "sudo systemctl enable firewalld",
-
-      # Touch hardened flag
       "sudo touch /etc/hardened-by-packer"
     ]
   }
