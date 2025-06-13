@@ -1,7 +1,10 @@
 name: Build Hardened AMI with Packer
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - main  # main 브랜치에 push될 때 자동 실행
+  workflow_dispatch:  # 수동 실행도 가능
 
 jobs:
   build-ami:
@@ -26,7 +29,7 @@ jobs:
         with:
           version: "1.10.0"
 
-      - name: Packer Init (Install Plugins)
+      - name: Packer Init
         run: packer init .
 
       - name: Write Packer Variable File
