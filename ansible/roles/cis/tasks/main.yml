@@ -1,0 +1,64 @@
+# SSH Harden
+- name: Disable root SSH login
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^PermitRootLogin'
+    line: 'PermitRootLogin no'
+
+- name: Disable SSH password authentication
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^PasswordAuthentication'
+    line: 'PasswordAuthentication no'
+
+- name: Restart sshd
+  service:
+    name: sshd
+    state: restarted
+
+# 자동 업데이트
+- name: Install dnf-automatic
+  dnf:
+    name: dnf-automatic
+    state: present
+
+- name: Enable apply_updates
+  lineinfile:
+    path: /etc/dnf/automatic.conf
+    regexp: '^apply_updates'
+    line: 'apply_updates = yes'
+
+- name: Start dnf-automatic.timer
+  systemd:
+    name: dnf-automatic.timer
+    enabled: yes
+    state: started
+
+# 감사 로그
+- name: Install auditd
+  dnf:
+    name: audit
+    state: present
+
+- name: Enable auditd
+  service:
+    name: auditd
+    enabled: yes
+    state: started
+
+# sudo 로그
+- name: Log sudo usage
+  lineinfile:
+    path: /etc/sudoers
+    regexp: '^Defaults.*logfile='
+    line: 'Defaults logfile="/var/log/sudo.log"'
+    validate: 'visudo -cf %s'
+
+# cron 접근 제한
+- name: Restrict cron access
+  copy:
+    content: "root\n"
+    dest: /etc/cron.allow
+    owner: root
+    group: root
+    mode: '0600'
