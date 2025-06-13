@@ -1,0 +1,38 @@
+name: Build Hardened AMI
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-ami:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up HashiCorp Packer
+      uses: hashicorp/setup-packer@v3
+      with:
+        version: latest
+
+    - name: Configure AWS credentials from OIDC
+      uses: aws-actions/configure-aws-credentials@v3
+      with:
+        role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+        aws-region: ${{ secrets.AWS_REGION }}
+
+    - name: Run Packer Build
+      run: |
+        packer init .
+        packer validate .
+        packer build \
+          -var "vpc_id=${{ secrets.AWS_VPC_ID }}" \
+          -var "subnet_id=${{ secrets.AWS_SUBNET_ID }}" \
+          -var "security_group_id=${{ secrets.AWS_SECURITY_GROUP_ID }}" \
+          packer.pkr.hcl
