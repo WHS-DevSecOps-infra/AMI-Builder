@@ -1,0 +1,49 @@
+name: Build Hardened AMI with Packer
+
+on:
+  push:
+    branches:
+      - main  # main 브랜치에 push될 때 자동 실행
+    paths-ignore:
+      - 'README.md'
+      - '.github/workflows/ami-build.yml'
+
+  workflow_dispatch:  # 수동 실행도 가능
+
+jobs:
+  build-ami:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Install HashiCorp Packer
+        uses: hashicorp/setup-packer@v3
+        with:
+          version: "1.10.0"
+
+      - name: Packer Init
+        run: packer init .
+
+      - name: Write Packer Variable File
+        run: |
+          echo 'vpc_id = "${{ secrets.AWS_VPC_ID }}"' >> variables.auto.pkrvars.hcl
+          echo 'subnet_id = "${{ secrets.AWS_SUBNET_ID }}"' >> variables.auto.pkrvars.hcl
+          echo 'security_group_id = "${{ secrets.AWS_SECURITY_GROUP_ID }}"' >> variables.auto.pkrvars.hcl
+
+      - name: Validate Packer Template
+        run: packer validate .
+
+      - name: Build Hardened AMI
+        run: packer build .

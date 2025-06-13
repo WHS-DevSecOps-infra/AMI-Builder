@@ -1,0 +1,6 @@
+.env
+*.log
+*-local.json
+.packer_cache/
+*.pem 
+.terraform
